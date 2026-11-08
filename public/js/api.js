@@ -13,12 +13,12 @@ export function currentUser() {
 export function clinicInfo() {
   try {
     return JSON.parse(localStorage.getItem(CLINIC) || 'null') || {
-      name: 'Harborlight Clinic',
+      name: 'Ines Clinic',
       timezone: 'Africa/Kigali',
       currency: 'RWF',
     };
   } catch {
-    return { name: 'Harborlight Clinic', timezone: 'Africa/Kigali', currency: 'RWF' };
+    return { name: 'Ines Clinic', timezone: 'Africa/Kigali', currency: 'RWF' };
   }
 }
 

@@ -8,6 +8,8 @@ import { config } from '../config.js';
 export const appointmentRouter = Router();
 
 const DURATIONS = [15, 20, 30, 45, 60];
+const VISIT_TYPES = ['new', 'follow_up', 'walk_in'];
+const PRIORITIES = ['routine', 'urgent', 'emergency'];
 
 async function checkIn(client, appointment, actorId) {
   if (appointment.status !== 'scheduled') throw httpError(409, 'Only a scheduled visit can be checked in');
@@ -47,6 +49,10 @@ appointmentRouter.post('/', requireRoles('receptionist'), asyncHandler(async (re
   const reason = clean(req.body.reason);
   const when = new Date(req.body.scheduledAt);
   const durationMin = DURATIONS.includes(Number(req.body.durationMin)) ? Number(req.body.durationMin) : 30;
+  const visitType = clean(req.body.visitType);
+  const priority = clean(req.body.priority);
+  if (visitType && !VISIT_TYPES.includes(visitType)) throw httpError(400, 'Choose a visit type from the list');
+  if (priority && !PRIORITIES.includes(priority)) throw httpError(400, 'Choose a priority from the list');
   if (!patientId || !doctorId || !reason) throw httpError(400, 'Patient, doctor, and reason are required');
   if (reason.length > 240) throw httpError(400, 'Keep the reason short');
   if (Number.isNaN(when.getTime())) throw httpError(400, 'Choose a valid date and time');
@@ -60,10 +66,15 @@ appointmentRouter.post('/', requireRoles('receptionist'), asyncHandler(async (re
     );
     if (!doctor.rows[0]) throw httpError(400, 'Choose an active doctor');
     const { rows } = await client.query(
-      `INSERT INTO appointments (patient_id, doctor_id, scheduled_at, duration_min, reason, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO appointments (
+         patient_id, doctor_id, scheduled_at, duration_min, reason, created_by,
+         visit_type, priority, room, referral_from, notes
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id`,
-      [patientId, doctorId, when.toISOString(), durationMin, reason, req.user.id],
+      [
+        patientId, doctorId, when.toISOString(), durationMin, reason, req.user.id,
+        visitType, priority, clean(req.body.room), clean(req.body.referralFrom), clean(req.body.notes),
+      ],
     );
     await logActivity(client, {
       actorId: req.user.id,

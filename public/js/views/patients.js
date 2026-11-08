@@ -3,6 +3,11 @@ import { esc, formObject, fullName, money, openModal, patientFields, pill, toast
 
 const EDITORS = ['admin', 'receptionist', 'nurse', 'doctor'];
 
+function field(label, value) {
+  const shown = value ? esc(value) : '<span class="blank">Empty</span>';
+  return `<div><span>${esc(label)}</span><strong>${shown}</strong></div>`;
+}
+
 export async function renderPatients(root, ctx) {
   if (ctx.id) return renderPatient(root, ctx);
   let query = '';
@@ -27,7 +32,7 @@ export async function renderPatients(root, ctx) {
               <td>${esc(patient.allergies || 'None recorded')}</td>
             </tr>`).join('')}
           </tbody>
-        </table></div>` : '<p class="empty">No patient matches that search.</p>'}
+        </table></div>` : '<p class="empty">No patients yet. Register one and fill in the empty fields.</p>'}
       </article>`;
     root.querySelector('#search').onsubmit = (event) => {
       event.preventDefault();
@@ -66,10 +71,28 @@ async function renderPatient(root, ctx) {
       <article class="card">
         <p class="muted">${esc(patient.mrn)}</p>
         <h2>${esc(fullName(patient))}</h2>
-        <p>${esc(patient.phone || '')}</p>
-        <p class="muted">${esc(patient.address || '')}</p>
-        ${patient.allergies ? `<p class="alert">Allergies: ${esc(patient.allergies)}</p>` : '<p class="muted">No allergies recorded</p>'}
-        <p class="muted">Emergency: ${esc(patient.emergencyName || 'not recorded')} ${esc(patient.emergencyPhone || '')}</p>
+        ${patient.allergies ? `<p class="alert">Allergies: ${esc(patient.allergies)}</p>` : ''}
+        <div class="fields">
+          ${field('Phone', patient.phone)}
+          ${field('National ID', patient.nationalId)}
+          ${field('Date of birth', patient.dateOfBirth)}
+          ${field('Gender', patient.gender)}
+          ${field('Marital status', patient.maritalStatus)}
+          ${field('Email', patient.email)}
+          ${field('Occupation', patient.occupation)}
+          ${field('City', patient.city)}
+          ${field('District', patient.district)}
+          ${field('Address', patient.address)}
+          ${field('Blood type', patient.bloodType)}
+          ${field('Insurance', patient.insuranceProvider)}
+          ${field('Policy number', patient.insuranceNumber)}
+          ${field('Chronic conditions', patient.chronicConditions)}
+          ${field('Current medications', patient.currentMedications)}
+          ${field('Emergency contact', patient.emergencyName)}
+          ${field('Emergency phone', patient.emergencyPhone)}
+          ${field('Relationship', patient.kinRelationship)}
+          ${field('Notes', patient.notes)}
+        </div>
       </article>
       <article class="card">
         <h2>Visits</h2>

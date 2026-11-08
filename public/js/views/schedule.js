@@ -96,18 +96,41 @@ async function openBooking(ctx, refresh) {
       </div>
       <label>Length
         <select name="durationMin">
+          <option value="">Choose</option>
+          <option value="15">15 minutes</option>
           <option value="20">20 minutes</option>
-          <option value="30" selected>30 minutes</option>
+          <option value="30">30 minutes</option>
           <option value="45">45 minutes</option>
           <option value="60">60 minutes</option>
         </select>
       </label>
-      <label>Reason<input name="reason" required maxlength="240" placeholder="Why is the patient coming in?"></label>`,
+      <div class="grid-2">
+        <label>Visit type
+          <select name="visitType">
+            <option value="">Not recorded</option>
+            <option value="new">New</option>
+            <option value="follow_up">Follow-up</option>
+            <option value="walk_in">Walk-in</option>
+          </select>
+        </label>
+        <label>Priority
+          <select name="priority">
+            <option value="">Not recorded</option>
+            <option value="routine">Routine</option>
+            <option value="urgent">Urgent</option>
+            <option value="emergency">Emergency</option>
+          </select>
+        </label>
+        <label>Room<input name="room" placeholder="Room 2"></label>
+        <label>Referred from<input name="referralFrom"></label>
+      </div>
+      <label>Reason<input name="reason" required maxlength="240" placeholder="Why is the patient coming in?"></label>
+      <label>Notes<textarea name="notes"></textarea></label>`,
     onSubmit: async (form) => {
       const body = formObject(form);
       body.patientId = Number(body.patientId);
       body.doctorId = Number(body.doctorId);
-      body.durationMin = Number(body.durationMin);
+      body.durationMin = body.durationMin ? Number(body.durationMin) : 30;
       body.scheduledAt = new Date(body.scheduledAt).toISOString();
       await api('/api/appointments', { method: 'POST', body });
       toast('Appointment booked');

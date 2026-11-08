@@ -206,6 +206,11 @@ encounterRouter.put('/:id', requireRoles('doctor'), asyncHandler(async (req, res
   const diagnosis = clean(req.body.diagnosis);
   const chiefComplaint = clean(req.body.chiefComplaint);
   const clinicalNotes = clean(req.body.clinicalNotes);
+  const icdCode = clean(req.body.icdCode);
+  const treatmentPlan = clean(req.body.treatmentPlan);
+  const advice = clean(req.body.advice);
+  const followUpOn = clean(req.body.followUpOn);
+  if (followUpOn && !/^\d{4}-\d{2}-\d{2}$/.test(followUpOn)) throw httpError(400, 'Use a real follow-up date');
   if (clinicalNotes && clinicalNotes.length > 4000) throw httpError(400, 'Clinical notes are too long');
 
   await withTransaction(async (client) => {
@@ -223,9 +228,13 @@ encounterRouter.put('/:id', requireRoles('doctor'), asyncHandler(async (req, res
       `UPDATE encounters
        SET chief_complaint = COALESCE($2, chief_complaint),
            diagnosis = $3,
-           clinical_notes = $4
+           clinical_notes = $4,
+           icd_code = $5,
+           treatment_plan = $6,
+           advice = $7,
+           follow_up_on = $8
        WHERE id = $1`,
-      [encounter.id, chiefComplaint, diagnosis, clinicalNotes],
+      [encounter.id, chiefComplaint, diagnosis, clinicalNotes, icdCode, treatmentPlan, advice, followUpOn],
     );
 
     if (Array.isArray(req.body.services)) {

@@ -1,4 +1,4 @@
--- Harborlight Clinic
+-- Ines Clinic
 -- One visit is the spine of the schema:
 --   appointment -> encounter -> vitals / services / prescription -> invoice -> payment
 -- Prices are copied onto visit lines so a later catalog change does not rewrite history.
@@ -378,3 +378,60 @@ CREATE OR REPLACE VIEW low_stock AS
 SELECT id, sku, name, form, strength, quantity_on_hand, reorder_level, unit_price
 FROM medications
 WHERE is_active AND quantity_on_hand <= reorder_level;
+
+-- Extra columns start empty. A class fills them from the forms.
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS national_id TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS marital_status TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS occupation TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS district TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_number TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS kin_relationship TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS chronic_conditions TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS current_medications TEXT;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS notes TEXT;
+
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS visit_type TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS priority TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS room TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS referral_from TEXT;
+
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS icd_code TEXT;
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS treatment_plan TEXT;
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS follow_up_on DATE;
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS advice TEXT;
+
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS generic_name TEXT;
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS manufacturer TEXT;
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS supplier TEXT;
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS batch_number TEXT;
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS expiry_date DATE;
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS storage_location TEXT;
+
+ALTER TABLE services ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS department TEXT;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS license_number TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS department TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS hire_date DATE;
+
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS due_on DATE;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payer_name TEXT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'patients_marital_status_check') THEN
+    ALTER TABLE patients ADD CONSTRAINT patients_marital_status_check
+      CHECK (marital_status IS NULL OR marital_status IN ('single', 'married', 'divorced', 'widowed', 'other'));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'appointments_visit_type_check') THEN
+    ALTER TABLE appointments ADD CONSTRAINT appointments_visit_type_check
+      CHECK (visit_type IS NULL OR visit_type IN ('new', 'follow_up', 'walk_in'));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'appointments_priority_check') THEN
+    ALTER TABLE appointments ADD CONSTRAINT appointments_priority_check
+      CHECK (priority IS NULL OR priority IN ('routine', 'urgent', 'emergency'));
+  END IF;
+END $$;

@@ -68,21 +68,28 @@ function chartHtml(encounter, catalog, ctx) {
         <label>SpO2<input name="spo2" type="number"></label>
         <label>Weight kg<input name="weightKg" type="number" step="0.1"></label>
         <label>Height cm<input name="heightCm" type="number" step="0.1"></label>
+        <label>Vitals notes<input name="notes"></label>
         <div class="actions"><button class="btn" type="submit">Save vitals</button></div>
       </form>` : ''}
     </article>
     <article class="card">
       <h2>Consultation</h2>
       ${canConsult ? `<form id="consult">
-        <label>Chief complaint<input name="chiefComplaint" value="${esc(encounter.chiefComplaint || encounter.reason || '')}"></label>
+        <div class="grid-2">
+          <label>Chief complaint<input name="chiefComplaint" value="${esc(encounter.chiefComplaint || encounter.reason || '')}"></label>
+          <label>ICD code<input name="icdCode" value="${esc(encounter.icdCode || '')}" placeholder="J06.9"></label>
+        </div>
         <label>Diagnosis<input name="diagnosis" value="${esc(encounter.diagnosis || '')}" placeholder="Required before closing"></label>
-        <label>Notes<textarea name="clinicalNotes">${esc(encounter.clinicalNotes || '')}</textarea></label>
+        <label>Clinical notes<textarea name="clinicalNotes">${esc(encounter.clinicalNotes || '')}</textarea></label>
+        <label>Treatment plan<textarea name="treatmentPlan">${esc(encounter.treatmentPlan || '')}</textarea></label>
+        <label>Advice<textarea name="advice">${esc(encounter.advice || '')}</textarea></label>
+        <label>Follow-up date<input type="date" name="followUpOn" value="${esc(encounter.followUpOn || '')}"></label>
         <h3>Services</h3>
-        ${catalog.services.map((service) => `<label class="inline"><input type="checkbox" name="service" value="${service.id}" ${(selected.size ? selected.has(service.id) : service.code === preferred) ? 'checked' : ''}> ${esc(service.name)}</label>`).join('')}
+        ${catalog.services.length ? catalog.services.map((service) => `<label class="inline"><input type="checkbox" name="service" value="${service.id}" ${(selected.size ? selected.has(service.id) : service.code === preferred) ? 'checked' : ''}> ${esc(service.name)}</label>`).join('') : '<p class="empty">No services yet. Accounts fills the catalog before a visit can be closed.</p>'}
         <h3 style="margin-top:12px">Prescription</h3>
         ${encounter.prescription?.status === 'dispensed' ? '<p class="muted">Pharmacy has already dispensed this prescription.</p>' : `
           <div class="table-wrap"><table id="rx">
-            <thead><tr><th>Stock item</th><th>Name</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Qty</th><th></th></tr></thead>
+            <thead><tr><th>Stock item</th><th>Name</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Qty</th><th>Instructions</th><th></th></tr></thead>
             <tbody>${(encounter.prescription?.items?.length ? encounter.prescription.items : [{}]).map((item) => rxRow(item, catalog.medications)).join('')}</tbody>
           </table></div>
           <button class="btn tiny" id="add-rx" type="button">Add medication</button>
@@ -108,7 +115,8 @@ function rxRow(item, medications) {
     <td><input name="dosage" value="${esc(item.dosage || '')}"></td>
     <td><input name="frequency" value="${esc(item.frequency || '')}"></td>
     <td><input name="duration" value="${esc(item.duration || '')}"></td>
-    <td><input name="quantity" type="number" min="1" value="${esc(item.quantity || 1)}"></td>
+    <td><input name="quantity" type="number" min="1" value="${esc(item.quantity || '')}" placeholder="Qty"></td>
+    <td><input name="instructions" value="${esc(item.instructions || '')}" placeholder="Instructions"></td>
     <td><button class="btn tiny ghost" data-remove type="button">Remove</button></td>
   </tr>`;
 }
@@ -154,6 +162,7 @@ function wireChart(root, ctx, encounter, catalog) {
         frequency: row.querySelector('[name=frequency]').value,
         duration: row.querySelector('[name=duration]').value,
         quantity: Number(row.querySelector('[name=quantity]').value || 1),
+        instructions: row.querySelector('[name=instructions]').value,
       })).filter((item) => item.medicationName || item.medicationId);
       await api(`/api/encounters/${encounter.id}`, {
         method: 'PUT',
@@ -161,6 +170,10 @@ function wireChart(root, ctx, encounter, catalog) {
           chiefComplaint: body.chiefComplaint,
           diagnosis: body.diagnosis,
           clinicalNotes: body.clinicalNotes,
+          icdCode: body.icdCode,
+          treatmentPlan: body.treatmentPlan,
+          advice: body.advice,
+          followUpOn: body.followUpOn,
           complete: button.value === 'close',
           services: [...event.target.querySelectorAll('[name=service]:checked')].map((input) => ({
             serviceId: Number(input.value),
@@ -180,5 +193,9 @@ function wireChart(root, ctx, encounter, catalog) {
 }
 
 function blankToNull(body) {
-  return Object.fromEntries(Object.entries(body).map(([key, value]) => [key, value === '' ? null : Number(value)]));
+  return Object.fromEntries(Object.entries(body).map(([key, value]) => {
+    if (value === '') return [key, null];
+    if (key === 'notes') return [key, value];
+    return [key, Number(value)];
+  }));
 }
