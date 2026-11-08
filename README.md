@@ -1,4 +1,4 @@
-# Harborlight Clinic
+# Ines Clinic
 
 A small clinic ERP for teaching. One visit moves through six roles, and PostgreSQL keeps the stock, the diary, and the money consistent.
 
@@ -60,7 +60,7 @@ Every demo account uses the password `Clinic123!`.
 | Patrick Ndayisaba, pharmacy | pharmacy@harborlight.clinic |
 | Grace Ingabire, accounts | accounts@harborlight.clinic |
 
-The seeded day already has a paid visit, a prescription waiting at the pharmacy, and patients in the queue. Currency is Rwandan francs and the clinic clock is `Africa/Kigali`. Both can be changed in `.env` (see `.env.example`).
+The database starts empty apart from the staff logins. Patients, the service catalog, medicines, appointments, and bills are blank fields for the class to fill. Currency is Rwandan francs and the clinic clock is `Africa/Kigali`. Both can be changed in `.env` (see `.env.example`).
 
 `npm run smoke` walks one synthetic visit through every role against a running server.
 

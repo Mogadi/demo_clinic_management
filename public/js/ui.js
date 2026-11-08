@@ -119,11 +119,14 @@ export function openModal({ title, body, submitLabel = 'Save', onSubmit }) {
 export function patientFields(patient = {}) {
   const gender = patient.gender || '';
   const blood = patient.bloodType || '';
+  const marital = patient.maritalStatus || '';
   const option = (value, label, current) => `<option value="${value}" ${value === current ? 'selected' : ''}>${label}</option>`;
   return `
+    <p class="fine">Only the name and phone are required. Leave the rest blank and fill them in as you collect the record.</p>
     <div class="grid-2">
       <label>First name<input name="firstName" required value="${esc(patient.firstName || '')}"></label>
       <label>Last name<input name="lastName" required value="${esc(patient.lastName || '')}"></label>
+      <label>National ID<input name="nationalId" value="${esc(patient.nationalId || '')}"></label>
       <label>Date of birth<input type="date" name="dateOfBirth" value="${esc(patient.dateOfBirth || '')}"></label>
       <label>Gender
         <select name="gender">
@@ -134,21 +137,40 @@ export function patientFields(patient = {}) {
           ${option('unknown', 'Unknown', gender)}
         </select>
       </label>
+      <label>Marital status
+        <select name="maritalStatus">
+          <option value="">Not recorded</option>
+          ${option('single', 'Single', marital)}
+          ${option('married', 'Married', marital)}
+          ${option('divorced', 'Divorced', marital)}
+          ${option('widowed', 'Widowed', marital)}
+          ${option('other', 'Other', marital)}
+        </select>
+      </label>
       <label>Phone<input name="phone" required value="${esc(patient.phone || '')}"></label>
       <label>Email<input name="email" type="email" value="${esc(patient.email || '')}"></label>
+      <label>Occupation<input name="occupation" value="${esc(patient.occupation || '')}"></label>
+      <label>City<input name="city" value="${esc(patient.city || '')}"></label>
+      <label>District<input name="district" value="${esc(patient.district || '')}"></label>
       <label>Blood type
         <select name="bloodType">
           <option value="">Unknown</option>
           ${['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((type) => option(type, type, blood)).join('')}
         </select>
       </label>
-      <label>Allergies<input name="allergies" value="${esc(patient.allergies || '')}" placeholder="None known"></label>
+      <label>Insurance provider<input name="insuranceProvider" value="${esc(patient.insuranceProvider || '')}"></label>
+      <label>Insurance number<input name="insuranceNumber" value="${esc(patient.insuranceNumber || '')}"></label>
     </div>
     <label>Address<input name="address" value="${esc(patient.address || '')}"></label>
     <div class="grid-2">
+      <label>Allergies<input name="allergies" value="${esc(patient.allergies || '')}"></label>
+      <label>Chronic conditions<input name="chronicConditions" value="${esc(patient.chronicConditions || '')}"></label>
+      <label>Current medications<input name="currentMedications" value="${esc(patient.currentMedications || '')}"></label>
       <label>Emergency contact<input name="emergencyName" value="${esc(patient.emergencyName || '')}"></label>
       <label>Emergency phone<input name="emergencyPhone" value="${esc(patient.emergencyPhone || '')}"></label>
-    </div>`;
+      <label>Relationship<input name="kinRelationship" value="${esc(patient.kinRelationship || '')}" placeholder="Spouse, parent, sibling"></label>
+    </div>
+    <label>Notes<textarea name="notes">${esc(patient.notes || '')}</textarea></label>`;
 }
 
 export function formObject(form) {

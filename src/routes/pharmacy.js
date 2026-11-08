@@ -115,10 +115,16 @@ pharmacyRouter.post('/medications', requireRoles('pharmacist'), asyncHandler(asy
   if (!Number.isInteger(reorderLevel) || reorderLevel < 0) throw httpError(400, 'Reorder level must be a whole number');
 
   const { rows } = await query(
-    `INSERT INTO medications (sku, name, form, strength, unit_price, quantity_on_hand, reorder_level)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO medications (
+       sku, name, form, strength, unit_price, quantity_on_hand, reorder_level,
+       generic_name, manufacturer, supplier, batch_number, expiry_date, storage_location
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
-    [sku, name, clean(req.body.form), clean(req.body.strength), unitPrice, quantity, reorderLevel],
+    [
+      sku, name, clean(req.body.form), clean(req.body.strength), unitPrice, quantity, reorderLevel,
+      clean(req.body.genericName), clean(req.body.manufacturer), clean(req.body.supplier),
+      clean(req.body.batchNumber), clean(req.body.expiryDate), clean(req.body.storageLocation),
+    ],
   );
   res.status(201).json({ medication: camel(rows[0]) });
 }));

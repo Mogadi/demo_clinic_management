@@ -7,6 +7,6 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || 'postgres://clinic:clinic@localhost:5433/clinic',
   jwtSecret: process.env.JWT_SECRET || 'harborlight-demo-secret',
   clinicTz: process.env.CLINIC_TZ || 'Africa/Kigali',
-  clinicName: process.env.CLINIC_NAME || 'Harborlight Clinic',
+  clinicName: process.env.CLINIC_NAME || 'Ines Clinic',
   currency: process.env.CLINIC_CURRENCY || 'RWF',
 };

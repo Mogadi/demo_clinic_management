@@ -108,10 +108,35 @@ const vitals = await call(`/api/encounters/${encounterId}/vitals`, {
 });
 check('vitals recorded', vitals.data.encounter.appointmentStatus === 'with_nurse');
 
-const services = await call('/api/catalog/services', { token: doctor });
-const consult = services.data.services.find((service) => service.code === 'CONS-GP');
-const paracetamol = (await call('/api/pharmacy/medications', { token: doctor })).data.medications
-  .find((item) => item.sku === 'PARA-500');
+const stamp = Date.now() % 100000;
+const createdService = await call('/api/catalog/services', {
+  method: 'POST',
+  token: accounts,
+  body: {
+    code: `SMK-${stamp}`,
+    name: 'Smoke consultation',
+    category: 'consultation',
+    price: 15000,
+    description: 'Created by the smoke test',
+    department: 'General',
+  },
+});
+const createdMed = await call('/api/pharmacy/medications', {
+  method: 'POST',
+  token: pharmacy,
+  body: {
+    sku: `SMK${stamp}`,
+    name: 'Smoke paracetamol',
+    form: 'tablet',
+    strength: '500 mg',
+    unitPrice: 100,
+    quantityOnHand: 20,
+    reorderLevel: 5,
+    genericName: 'Paracetamol',
+  },
+});
+const consult = createdService.data.service;
+const paracetamol = createdMed.data.medication;
 const before = paracetamol.quantityOnHand;
 
 const closed = await call(`/api/encounters/${encounterId}`, {
@@ -145,7 +170,7 @@ const dispensed = await call(`/api/pharmacy/prescriptions/${closed.data.encounte
 check('dispensed', dispensed.data.prescription.status === 'dispensed');
 
 const after = (await call('/api/pharmacy/medications', { token: pharmacy })).data.medications
-  .find((item) => item.sku === 'PARA-500');
+  .find((item) => item.sku === paracetamol.sku);
 check('stock reduced by two', after.quantityOnHand === before - 2);
 
 const invoiceId = closed.data.encounter.invoice.id;

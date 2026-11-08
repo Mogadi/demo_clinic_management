@@ -15,13 +15,13 @@ export async function renderServices(root, ctx) {
     <article class="card"><div class="table-wrap"><table>
       <thead><tr><th>Code</th><th>Service</th><th>Category</th><th>Price</th><th></th></tr></thead>
       <tbody>
-        ${data.services.map((service) => `<tr>
+        ${data.services.length ? data.services.map((service) => `<tr>
           <td>${esc(service.code)}</td>
           <td>${esc(service.name)}</td>
           <td>${esc(service.category)}</td>
           <td>${esc(money(service.price))}</td>
           <td>${canEdit ? `<button class="btn tiny" data-toggle="${service.id}" data-active="${service.isActive}" type="button">${service.isActive ? 'Retire' : 'Restore'}</button>` : pill(service.isActive ? 'open' : 'closed')}</td>
-        </tr>`).join('')}
+        </tr>`).join('') : '<tr><td colspan="5">No services yet. Add one and fill in the blank fields.</td></tr>'}
       </tbody>
     </table></div></article>`;
   root.querySelector('#add')?.addEventListener('click', () => {
@@ -32,6 +32,8 @@ export async function renderServices(root, ctx) {
         <label>Name<input name="name" required></label>
         <label>Category<select name="category"><option value="consultation">Consultation</option><option value="procedure">Procedure</option><option value="lab">Lab</option></select></label>
         <label>Price<input name="price" type="number" min="0" required></label>
+        <label>Department<input name="department"></label>
+        <label>Description<input name="description"></label>
       </div>`,
       onSubmit: async (form) => {
         const body = formObject(form);
@@ -82,6 +84,9 @@ export async function renderStaff(root, ctx) {
         <label>Role<select name="role">${ROLES.map((role) => `<option value="${role}">${role}</option>`).join('')}</select></label>
         <label>Phone<input name="phone"></label>
         <label>Specialty<input name="specialty" placeholder="For doctors"></label>
+        <label>License number<input name="licenseNumber"></label>
+        <label>Department<input name="department"></label>
+        <label>Hire date<input name="hireDate" type="date"></label>
         <label>Temporary password<input name="password" type="text" required minlength="8"></label>
       </div>`,
       onSubmit: async (form) => {

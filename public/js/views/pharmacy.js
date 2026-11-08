@@ -45,8 +45,14 @@ export async function renderPharmacy(root, ctx) {
         <label>Form<input name="form" placeholder="tablet"></label>
         <label>Strength<input name="strength" placeholder="500 mg"></label>
         <label>Price<input name="unitPrice" type="number" min="0" required></label>
-        <label>On hand<input name="quantityOnHand" type="number" min="0" value="0"></label>
-        <label>Reorder at<input name="reorderLevel" type="number" min="0" value="10"></label>
+        <label>On hand<input name="quantityOnHand" type="number" min="0"></label>
+        <label>Reorder at<input name="reorderLevel" type="number" min="0"></label>
+        <label>Generic name<input name="genericName"></label>
+        <label>Manufacturer<input name="manufacturer"></label>
+        <label>Supplier<input name="supplier"></label>
+        <label>Batch number<input name="batchNumber"></label>
+        <label>Expiry date<input name="expiryDate" type="date"></label>
+        <label>Storage location<input name="storageLocation" placeholder="Shelf A"></label>
       </div>`,
       onSubmit: async (form) => {
         const body = formObject(form);

@@ -58,6 +58,7 @@ function render() {
   const ticket = ++generation;
   const user = currentUser();
   const route = parseHash();
+  document.title = clinicInfo().name || 'Ines Clinic';
   if (!user) {
     drawLogin();
     return;
@@ -122,6 +123,7 @@ async function drawLogin() {
   try {
     clinic = await api('/api/auth/meta', { allow401: true });
     localStorage.setItem('harborlight.clinic', JSON.stringify(clinic));
+    document.title = clinic.name || 'Ines Clinic';
   } catch {
     /* the form still works with the default name */
   }
@@ -130,7 +132,7 @@ async function drawLogin() {
       <section class="login-story">
         <div class="mark"><span></span></div>
         <div>
-          <h1 class="wordmark">${esc(clinic.name || 'Harborlight Clinic')}</h1>
+          <h1 class="wordmark">${esc(clinic.name || 'Ines Clinic')}</h1>
           <div class="story-steps">
             <div><strong>01</strong> Reception registers and checks the patient in</div>
             <div><strong>02</strong> Nursing records vitals</div>

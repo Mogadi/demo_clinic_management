@@ -28,8 +28,9 @@ catalogRouter.get('/services', asyncHandler(async (req, res) => {
 catalogRouter.post('/services', requireRoles('accountant'), asyncHandler(async (req, res) => {
   const service = readService(req.body);
   const { rows } = await query(
-    `INSERT INTO services (code, name, category, price) VALUES ($1, $2, $3, $4) RETURNING *`,
-    [service.code, service.name, service.category, service.price],
+    `INSERT INTO services (code, name, category, price, description, department)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [service.code, service.name, service.category, service.price, clean(req.body.description), clean(req.body.department)],
   );
   res.status(201).json({ service: camel(rows[0]) });
 }));
@@ -52,7 +53,8 @@ catalogRouter.patch('/services/:id', requireRoles('accountant'), asyncHandler(as
 
 catalogRouter.get('/staff', requireRoles(), asyncHandler(async (_req, res) => {
   const { rows } = await query(
-    `SELECT id, full_name, email, role, phone, specialty, is_active, created_at
+    `SELECT id, full_name, email, role, phone, specialty, is_active, created_at,
+            license_number, department, hire_date
      FROM users ORDER BY role, full_name`,
   );
   res.json({ staff: camel(rows) });
@@ -66,10 +68,14 @@ catalogRouter.post('/staff', requireRoles(), asyncHandler(async (req, res) => {
   if (!fullName || !email || !ROLES.includes(role)) throw httpError(400, 'Name, email, and a valid role are required');
   if (password.length < 8) throw httpError(400, 'Use a password of at least 8 characters');
   const { rows } = await query(
-    `INSERT INTO users (full_name, email, password_hash, role, phone, specialty)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, full_name, email, role, phone, specialty, is_active`,
-    [fullName, email, await bcrypt.hash(password, 10), role, clean(req.body.phone), clean(req.body.specialty)],
+    `INSERT INTO users (
+       full_name, email, password_hash, role, phone, specialty, license_number, department, hire_date
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id, full_name, email, role, phone, specialty, is_active, license_number, department, hire_date`,
+    [
+      fullName, email, await bcrypt.hash(password, 10), role, clean(req.body.phone), clean(req.body.specialty),
+      clean(req.body.licenseNumber), clean(req.body.department), clean(req.body.hireDate),
+    ],
   );
   res.status(201).json({ staff: camel(rows[0]) });
 }));
